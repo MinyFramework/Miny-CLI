@@ -13,8 +13,6 @@ use InvalidArgumentException;
 use Miny\Application\BaseApplication;
 use Miny\AutoLoader;
 
-require_once __DIR__ . '/BaseApplication.php';
-
 class WorkerApplication extends BaseApplication
 {
     private $jobs           = array();
