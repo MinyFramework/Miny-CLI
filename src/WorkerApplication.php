@@ -12,10 +12,11 @@ namespace Modules\CLI;
 use InvalidArgumentException;
 use Miny\Application\BaseApplication;
 use Miny\AutoLoader;
+use Miny\Factory\Factory;
 
 class WorkerApplication extends BaseApplication
 {
-    private $jobs           = array();
+    private $jobs = array();
     private $exit_requested = false;
 
     public function __construct($environment = self::ENV_PROD, AutoLoader $autoloader = null)
@@ -28,20 +29,21 @@ class WorkerApplication extends BaseApplication
         parent::__construct($environment, $autoloader);
     }
 
-    protected function registerDefaultServices()
+    protected function registerDefaultServices(Factory $factory)
     {
-        parent::registerDefaultServices();
+        parent::registerDefaultServices($factory);
 
-        $this->getFactory()->add('controller', '\Miny\Controller\WorkerController')
-                ->setArguments($this);
+        $factory->add('controller', '\Miny\Controller\WorkerController')
+            ->setArguments($this);
     }
 
     /**
      * @param string $name
-     * @param mixed $runnable
-     * @param mixed $workload
-     * @param mixed $condition
-     * @param bool $one_time
+     * @param mixed  $runnable
+     * @param mixed  $workload
+     * @param mixed  $condition
+     * @param bool   $one_time
+     *
      * @return Job
      * @throws InvalidArgumentException
      */

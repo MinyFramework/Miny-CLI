@@ -1,0 +1,20 @@
+{
+    "name": "miny/cli",
+    "description": "This package provides the base to implement CLI applications.",
+    "minimum-stability": "dev",
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "Dániel Buga",
+            "email": "bugadani@gmail.com"
+        }
+    ],
+    "require": {
+        "miny/framework": "dev-master"
+    },
+    "autoload": {
+        "psr-4": {
+            "Modules\\CLI\\": "src/"
+        }
+    }
+}
