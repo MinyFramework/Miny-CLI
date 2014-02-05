@@ -12,11 +12,8 @@ namespace Modules\CLI;
 use InvalidArgumentException;
 use Miny\Application\BaseApplication;
 use Miny\AutoLoader;
-use Miny\Event\EventDispatcher;
 use Miny\Factory\Container;
-use Miny\Log\FileWriter;
 use Miny\Log\Log;
-use Miny\Shutdown\ShutdownService;
 
 class WorkerApplication extends BaseApplication
 {
@@ -38,7 +35,7 @@ class WorkerApplication extends BaseApplication
 
     protected function registerDefaultServices(Container $container)
     {
-        $container->addAlias('\\Miny\\Application\\BaseApplication', __CLASS__);
+        $container->addAlias('\\Miny\\Application\\BaseApplication', '\\Modules\\CLI\\WorkerApplication');
     }
 
 
