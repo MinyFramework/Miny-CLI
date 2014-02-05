@@ -36,6 +36,7 @@ class WorkerApplication extends BaseApplication
     protected function registerDefaultServices(Container $container)
     {
         $container->addAlias('\\Miny\\Application\\BaseApplication', '\\Modules\\CLI\\WorkerApplication');
+        parent::registerDefaultServices($container);
     }
 
 
