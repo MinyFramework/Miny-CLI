@@ -12,6 +12,7 @@ namespace Modules\CLI;
 use InvalidArgumentException;
 use Miny\Application\BaseApplication;
 use Miny\AutoLoader;
+use Miny\Log\Log;
 
 class WorkerApplication extends BaseApplication
 {
@@ -74,21 +75,22 @@ class WorkerApplication extends BaseApplication
 
     protected function onRun()
     {
-        $log = $this->getFactory()->get('log');
+        /** @var $log Log */
+        $log = $this->getContainer()->get('\\Miny\\Log\\Log');
         while (!$this->exit_requested && !empty($this->jobs)) {
 
             foreach ($this->jobs as $name => $job) {
                 if ($job->canRun()) {
                     $job->run($this);
                     if ($job->isOneTimeJob()) {
-                        $log->info('Removing one-time job %s', $name);
+                        $log->write(Log::INFO, 'WorkerApplication', 'Removing one-time job %s', $name);
                         $this->removeJob($name);
                     }
                 } else {
-                    $log->info('Skipping job %s', $name);
+                    $log->write(Log::INFO, 'WorkerApplication', 'Skipping job %s', $name);
                 }
             }
-            $log->saveLog();
+            $log->flush();
         }
     }
 }
