@@ -46,8 +46,10 @@ class Job
     {
         if (is_callable($this->run_condition)) {
             $function = $this->run_condition;
+
             return $function();
         }
+
         return true;
     }
 
@@ -64,24 +66,20 @@ class Job
             if (is_string($class)) {
                 //Lazily instantiate WorkerController
                 //Keep it in the same variable for later use
-                $factory = $app->getFactory();
-                if ($factory->has($class . '_controller')) {
-                    $class = $factory->get($class . '_controller');
-                } else {
+                if (!class_exists($class)) {
+                    $class = '\Application\Controllers\\' . ucfirst($class) . 'Controller';
                     if (!class_exists($class)) {
-                        $class = '\Application\Controllers\\' . ucfirst($class) . 'Controller';
-                        if (!class_exists($class)) {
-                            throw new UnexpectedValueException('Class not found: ' . $class);
-                        }
+                        throw new UnexpectedValueException('Class not found: ' . $class);
                     }
-                    $class = new $class($app);
                 }
+                $class = $app->getContainer()->get($class);
                 //Cache our runnable to avoid reinstantiation
                 $this->runnable[0] = $class;
             }
 
             if ($class instanceof WorkerController) {
                 $class->$method($this);
+
                 return;
             }
         }
