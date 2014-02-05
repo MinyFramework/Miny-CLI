@@ -12,7 +12,6 @@ namespace Modules\CLI;
 use InvalidArgumentException;
 use Miny\Application\BaseApplication;
 use Miny\AutoLoader;
-use Miny\Factory\Factory;
 
 class WorkerApplication extends BaseApplication
 {
@@ -23,18 +22,13 @@ class WorkerApplication extends BaseApplication
     {
         ignore_user_abort(true);
         set_time_limit(0);
-        pcntl_signal(SIGTERM, function () {
-            exit;
-        });
+        pcntl_signal(
+            SIGTERM,
+            function () {
+                exit;
+            }
+        );
         parent::__construct($environment, $autoloader);
-    }
-
-    protected function registerDefaultServices(Factory $factory)
-    {
-        parent::registerDefaultServices($factory);
-
-        $factory->add('controller', '\Miny\Controller\WorkerController')
-            ->setArguments($this);
     }
 
     /**
@@ -56,8 +50,15 @@ class WorkerApplication extends BaseApplication
             $runnable = new Job($runnable, $workload, $one_time, $condition);
         }
 
-        $this->getFactory()->get('log')->info('Registering new %s "%s"', ($one_time ? 'one-time job' : 'job'), $name);
+        $this->getContainer()->get('\\Miny\\Log\\Log')->write(
+            Log::INFO,
+            'WorkerApplication',
+            'Registering new %s "%s"',
+            ($one_time ? 'one-time job' : 'job'),
+            $name
+        );
         $this->jobs[$name] = $runnable;
+
         return $runnable;
     }
 
