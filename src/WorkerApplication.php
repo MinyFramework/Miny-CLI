@@ -2,7 +2,7 @@
 
 /**
  * This file is part of the Miny framework.
- * (c) Dániel Buga <daniel@bugadani.hu>
+ * (c) Dániel Buga <bugadani@gmail.com>
  *
  * For licensing information see the LICENSE file.
  */
@@ -17,8 +17,20 @@ use Miny\Log\Log;
 
 class WorkerApplication extends BaseApplication
 {
-    private $jobs = array();
-    private $exit_requested = false;
+    /**
+     * @var Job[]
+     */
+    private $jobs = [];
+
+    /**
+     * @var Log
+     */
+    private $log;
+
+    /**
+     * @var bool
+     */
+    private $exitRequested = false;
 
     public function __construct($environment = self::ENV_PROD, AutoLoader $autoloader = null)
     {
@@ -37,8 +49,9 @@ class WorkerApplication extends BaseApplication
     {
         $container->addAlias('\\Miny\\Application\\BaseApplication', '\\Modules\\CLI\\WorkerApplication');
         parent::registerDefaultServices($container);
-    }
 
+        $this->log = $this->getContainer()->get('\\Miny\\Log\\Log');
+    }
 
     /**
      * @param string $name
@@ -56,10 +69,10 @@ class WorkerApplication extends BaseApplication
             throw new InvalidArgumentException('Job name must be a string.');
         }
         if (!$runnable instanceof Job) {
-            $runnable = new Job($runnable, $workload, $one_time, $condition);
+            $runnable = new Job($runnable, $workload, $condition, $one_time);
         }
 
-        $this->getContainer()->get('\\Miny\\Log\\Log')->write(
+        $this->log->write(
             Log::INFO,
             'WorkerApplication',
             'Registering new %s "%s"',
@@ -78,27 +91,25 @@ class WorkerApplication extends BaseApplication
 
     public function requestExit()
     {
-        $this->exit_requested = true;
+        $this->exitRequested = true;
     }
 
     protected function onRun()
     {
-        /** @var $log Log */
-        $log = $this->getContainer()->get('\\Miny\\Log\\Log');
-        while (!$this->exit_requested && !empty($this->jobs)) {
+        while (!$this->exitRequested && !empty($this->jobs)) {
 
             foreach ($this->jobs as $name => $job) {
                 if ($job->canRun()) {
                     $job->run($this);
                     if ($job->isOneTimeJob()) {
-                        $log->write(Log::INFO, 'WorkerApplication', 'Removing one-time job %s', $name);
+                        $this->log->write(Log::INFO, 'WorkerApplication', 'Removing one-time job %s', $name);
                         $this->removeJob($name);
                     }
                 } else {
-                    $log->write(Log::INFO, 'WorkerApplication', 'Skipping job %s', $name);
+                    $this->log->write(Log::INFO, 'WorkerApplication', 'Skipping job %s', $name);
                 }
             }
-            $log->flush();
+            $this->log->flush();
         }
     }
 }

@@ -1,51 +1,61 @@
 <?php
 
+/**
+ * This file is part of the Miny framework.
+ * (c) Dániel Buga <bugadani@gmail.com>
+ *
+ * For licensing information see the LICENSE file.
+ */
+
 namespace Modules\CLI;
 
-use Closure;
 use InvalidArgumentException;
 use UnexpectedValueException;
 
 class Job
 {
     private $runnable;
-    private $one_time;
-    private $run_condition;
+    private $isOneTime;
+    private $runCondition;
     private $workload;
 
-    public function __construct($runnable, $workload = null, $run_condition = null, $one_time = false)
+    /**
+     * @param callable $runnable The job to run
+     * @param null     $workload Workload for the job to process
+     * @param callable $runCondition Callable that return true if the job can be executed
+     * @param bool     $oneTime Indicates whether the job should only be run once
+     */
+    public function __construct($runnable, $workload = null, $runCondition = null, $oneTime = false)
     {
-        if (!is_callable($runnable) && !$runnable instanceof Closure) {
+        if (!is_callable($runnable)) {
             if (is_string($runnable)) {
-                $class  = $runnable;
-                $method = 'run';
-            } elseif (is_array($runnable) && count($runnable) == 2) {
-                list($class, $method) = $runnable;
+                $runnable = [$runnable, 'run'];
             } else {
-                throw new InvalidArgumentException('Invalid runnable set.');
+                if (!(is_array($runnable) && count($runnable) == 2)) {
+                    throw new InvalidArgumentException('Invalid runnable set.');
+                }
             }
-            $runnable = array($class, $method);
         }
-        $this->runnable      = $runnable;
-        $this->one_time      = $one_time;
-        $this->run_condition = $run_condition;
-        $this->workload      = $workload;
+        $this->runnable     = $runnable;
+        $this->isOneTime    = $oneTime;
+        $this->runCondition = $runCondition;
+        $this->workload     = $workload;
     }
 
     public function isOneTimeJob()
     {
-        return $this->one_time;
+        return $this->isOneTime;
     }
 
-    public function setRunCondition($run_condition)
+    public function setRunCondition($runCondition)
     {
-        $this->run_condition = $run_condition;
+        $this->runCondition = $runCondition;
     }
 
     public function canRun()
     {
-        if (is_callable($this->run_condition)) {
-            $function = $this->run_condition;
+        if (is_callable($this->runCondition)) {
+            $function = $this->runCondition;
 
             return $function();
         }
@@ -67,7 +77,7 @@ class Job
                 //Lazily instantiate WorkerController
                 //Keep it in the same variable for later use
                 if (!class_exists($class)) {
-                    $class = '\Application\Controllers\\' . ucfirst($class) . 'Controller';
+                    $class = '\\Application\\Controllers\\' . ucfirst($class) . 'Controller';
                     if (!class_exists($class)) {
                         throw new UnexpectedValueException('Class not found: ' . $class);
                     }
