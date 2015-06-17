@@ -50,7 +50,7 @@ class WorkerApplication extends BaseApplication
         $container->addAlias('\\Miny\\Application\\BaseApplication', '\\Modules\\CLI\\WorkerApplication');
         parent::registerDefaultServices($container);
 
-        $this->log = $this->getContainer()->get('\\Miny\\Log\\Log');
+        $this->log = $container->get('\\Miny\\Log\\Log');
     }
 
     /**
